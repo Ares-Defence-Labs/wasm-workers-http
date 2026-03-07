@@ -1,0 +1,111 @@
+# ============================================
+# C++ / CMake
+# ============================================
+
+# CMake build folders
+cmake-build-*/
+build/
+build-*/
+build-wasm/
+out/
+bin/
+obj/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+CTestTestfile.cmake
+Testing/
+
+build-wasm
+build-wasm/
+.idea
+# Ninja
+.ninja_deps
+.ninja_log
+build.ninja
+
+# ============================================
+# vcpkg
+# ============================================
+
+# Local vcpkg clone
+vcpkg/
+
+third_party/
+
+# vcpkg build artifacts
+vcpkg_installed/
+vcpkg/buildtrees/
+vcpkg/packages/
+vcpkg/downloads/
+
+# ============================================
+# WASM build output
+# ============================================
+
+*.wasm
+*.wasm.map
+*.js
+*.mem
+
+# if you copy wasm to worker folder
+worker/wasm/*.wasm
+
+# ============================================
+# Node / Wrangler
+# ============================================
+
+node_modules/
+worker/node_modules/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+.wrangler/
+dist/
+
+# ============================================
+# IDE / Editors
+# ============================================
+
+# CLion
+.idea/
+cmake-build-debug/
+cmake-build-release/
+
+# VS Code
+.vscode/
+
+# Xcode
+DerivedData/
+*.xcworkspace
+*.xcuserdata
+*.xcuserstate
+
+# ============================================
+# macOS
+# ============================================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ============================================
+# Logs
+# ============================================
+
+logs/
+*.log
+
+# ============================================
+# Temporary
+# ============================================
+
+tmp/
+temp/
+.cache/
