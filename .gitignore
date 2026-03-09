@@ -35,7 +35,7 @@ build.ninja
 # Local vcpkg clone
 vcpkg/
 
-third_party/
+cpp/third_party/
 
 # vcpkg build artifacts
 vcpkg_installed/

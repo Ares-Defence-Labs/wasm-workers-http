@@ -1,0 +1,40 @@
+{
+  "name": "@aresdefencelabs/wasm-http-runtime",
+  "version": "0.0.1",
+  "description": "Runtime adapter that connects C++ WebAssembly workers to the Cloudflare Workers runtime via an ABI bridge.",
+  "type": "module",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ares-Defence-Labs/wasm-workers-http.git"
+  },
+
+  "homepage": "https://github.com/Ares-Defence-Labs/wasm-workers-http",
+
+  "bugs": {
+    "url": "https://github.com/Ares-Defence-Labs/wasm-workers-http/issues"
+  },
+
+  "author": "Ares Defence Labs",
+  "license": "MIT",
+
+  "keywords": [
+    "cloudflare",
+    "cloudflare-workers",
+    "webassembly",
+    "wasm",
+    "cpp",
+    "wasm-runtime",
+    "workers-runtime",
+    "http-client",
+    "serverless",
+    "edge"
+  ],
+
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "http-worker",
+  "version-string": "0.0.1",
+  "dependencies": [
+    "nlohmann-json"
+  ]
+}
