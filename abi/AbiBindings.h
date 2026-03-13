@@ -15,11 +15,6 @@ extern "C" {
     uint32_t abi_http_get_user_agent_name();
     void abi_log(uint32_t message_cstr_ptr);
 
-    inline uint32_t alloc(uint32_t size) {
-        return static_cast<uint32_t>(reinterpret_cast<uintptr_t>(std::malloc(size)));
-    }
-
-   inline  void free_mem(uint32_t ptr, uint32_t size) {
-        std::free(reinterpret_cast<void*>(ptr));
-    }
+    uint32_t alloc(uint32_t size);
+    void free_mem(uint32_t ptr, uint32_t size);
 }
