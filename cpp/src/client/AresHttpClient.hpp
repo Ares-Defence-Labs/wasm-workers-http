@@ -10,6 +10,7 @@
 #include "enums/MethodType.hpp"
 #include "enums/Mimes.h"
 #include "extensions/JsonExtension.h"
+#include "helpers/ABIHelpers.h"
 #include "models/HttpRequest.hpp"
 #include "nlohmann/json.hpp"
 
@@ -48,8 +49,8 @@ namespace AresWasmWorker {
                 },
                 {
                     // user agent must come from the runtime (cloudflare worker)
-                    // to_string_header(HttpHeader::USER_AGENT),
-                    // reinterpret_cast<const char *>(abi_http_get_user_agent_name())
+                    to_string_header(HttpHeader::USER_AGENT),
+                    reinterpret_cast<const char *>(abi_http_get_user_agent_name())
                 },
                 {
                     to_string_header(HttpHeader::CACHE_CONTROL),
@@ -66,12 +67,13 @@ namespace AresWasmWorker {
             }
         }
 
-        template<ResponseChecker BodyType>
-         std::unique_ptr<HttpResponse<BodyType>> makeRequestCall(
-             const std::string apiAddress,
-             const HttpMethod methodType
-         ) {
+         template<ResponseChecker BodyType>
+        std::unique_ptr<HttpResponse<BodyType>> makeRequestCall(
+            const std::string& apiAddress,
+            const HttpMethod methodType
+        ) {
             auto targetAddress = configureAddress(apiAddress);
+
             HttpRequest request(
                 targetAddress,
                 to_string_method(methodType),
@@ -80,20 +82,44 @@ namespace AresWasmWorker {
             );
 
             auto jsonData = request.toJson();
-            auto newCopy = alloc(jsonData.size() + 1);
-            std::memcpy(reinterpret_cast<void*>(newCopy), jsonData.c_str(), jsonData.size() + 1);
 
-            auto response = reinterpret_cast<char*>(abi_http_fetch_blocking(newCopy));
-            auto responseObj = JsonExtensions::getResponseFromJson<BodyType>(std::string(response));
+            auto requestPtr = alloc(static_cast<uint32_t>(jsonData.size() + 1));
+            if (!requestPtr) {
+                throw std::runtime_error("alloc failed for request json");
+            }
 
-            return std::make_unique<HttpResponse<BodyType>>(responseObj);
+            std::memcpy(
+                reinterpret_cast<void*>(requestPtr),
+                jsonData.c_str(),
+                jsonData.size() + 1
+            );
+
+            const auto responseId = abi_http_fetch_blocking(requestPtr);
+
+            free_mem(requestPtr, static_cast<uint32_t>(jsonData.size() + 1));
+
+            if (!responseId) {
+                throw std::runtime_error("abi_http_fetch_blocking failed");
+            }
+
+            ScopedHostResponse scoped(responseId);
+            auto rawResponse = AbiHttpHelpers::readResponse(scoped.id());
+
+            BodyType responseObj =
+                JsonExtensions::getResponseFromJson<BodyType>(rawResponse.body);
+
+            return std::make_unique<HttpResponse<BodyType>>(
+                rawResponse.status,
+                std::make_shared<std::map<std::string, std::string>>(std::move(rawResponse.headers)),
+                std::move(responseObj)
+            );
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
         std::unique_ptr<HttpResponse<BodyType>> makeRequestCall(
-            const std::string apiAddress,
+            const std::string& apiAddress,
             const HttpMethod methodType,
-            const RequestBody requestBody
+            const RequestBody& requestBody
         ) {
             auto targetAddress = configureAddress(apiAddress);
 
@@ -105,13 +131,37 @@ namespace AresWasmWorker {
             );
 
             auto jsonData = request.toJson();
-            auto newCopy = alloc(jsonData.size() + 1);
-            std::memcpy(reinterpret_cast<void*>(newCopy), jsonData.c_str(), jsonData.size() + 1);
 
-            auto response = reinterpret_cast<char*>(abi_http_fetch_blocking(newCopy));
-            auto responseObj = JsonExtensions::getResponseFromJson<BodyType>(std::string(response));
+            auto requestPtr = alloc(static_cast<uint32_t>(jsonData.size() + 1));
+            if (!requestPtr) {
+                throw std::runtime_error("alloc failed for request json");
+            }
 
-            return std::make_unique<HttpResponse<BodyType>>(responseObj);
+            std::memcpy(
+                reinterpret_cast<void*>(requestPtr),
+                jsonData.c_str(),
+                jsonData.size() + 1
+            );
+
+            const auto responseId = abi_http_fetch_blocking(requestPtr);
+
+            free_mem(requestPtr, static_cast<uint32_t>(jsonData.size() + 1));
+
+            if (!responseId) {
+                throw std::runtime_error("abi_http_fetch_blocking failed");
+            }
+
+            ScopedHostResponse scoped(responseId);
+            auto rawResponse = AbiHttpHelpers::readResponse(scoped.id());
+
+            BodyType responseObj =
+                JsonExtensions::getResponseFromJson<BodyType>(rawResponse.body);
+
+            return std::make_unique<HttpResponse<BodyType>>(
+                rawResponse.status,
+                std::make_shared<std::map<std::string, std::string>>(std::move(rawResponse.headers)),
+                std::move(responseObj)
+            );
         }
 
     public:

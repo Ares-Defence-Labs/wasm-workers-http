@@ -10,8 +10,11 @@ export function createAresWorkerHandler<Env = unknown>(
         ...options
     });
 
+    const ready = runtime.init();
+
     return {
         async fetch(request: Request, env: Env, ctx: WorkerExecutionContext) {
+            await ready;
             return runtime.handleFetch(request, env, ctx);
         }
     };
