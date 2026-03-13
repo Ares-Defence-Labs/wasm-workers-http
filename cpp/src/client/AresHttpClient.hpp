@@ -103,7 +103,7 @@ namespace AresWasmWorker {
         std::unique_ptr<HttpResponse<BodyType> > get(const std::string apiAddress) {
             verifyIfBaseAddress();
 
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::GET, nullptr);
+            return makeRequestCall<BodyType>(apiAddress, HttpMethod::GET, std::nullopt);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
