@@ -160,42 +160,51 @@ export function createAresAbiImports<Env>(state: RuntimeState<Env>) {
                 const instance = getInstanceOrThrow(state);
                 const memory = getMemoryOrThrow(instance);
 
-                const requestJson = readCString(memory, requestJsonCstrPtr);
-                const outbound = JSON.parse(requestJson) as OutboundHttpRequestEnvelope;
+                try {
+                    const requestJson = readCString(memory, requestJsonCstrPtr);
+                    const outbound = JSON.parse(requestJson) as OutboundHttpRequestEnvelope;
 
-                const response = await fetch(outbound.url, {
-                    method: outbound.method ?? "GET",
-                    headers: outbound.headers,
-                    body: outbound.body ?? undefined
-                });
+                    if (state.options.debug) {
+                        console.log("[AresWasm] abi_http_fetch_blocking outbound =", outbound);
+                    }
 
-                const bodyText = await response.text();
-                const bodyBytes = utf8ByteLength(bodyText);
+                    const response = await fetch(outbound.url, {
+                        method: outbound.method ?? "GET",
+                        headers: outbound.headers,
+                        body: outbound.body ?? undefined
+                    });
 
-                if (bodyBytes > state.options.maxResponseBodyBytes) {
-                    throw new Error(
-                        `HTTP response body too large: ${bodyBytes} bytes exceeds maxResponseBodyBytes=${state.options.maxResponseBodyBytes}`
-                    );
+                    const bodyText = await response.text();
+                    const bodyBytes = utf8ByteLength(bodyText);
+
+                    if (bodyBytes > state.options.maxResponseBodyBytes) {
+                        throw new Error(
+                            `HTTP response body too large: ${bodyBytes} bytes exceeds maxResponseBodyBytes=${state.options.maxResponseBodyBytes}`
+                        );
+                    }
+
+                    const headers = normalizeHeaders(response.headers);
+                    const estimatedBytes = estimateResponseBytes({
+                        bodyText,
+                        headers
+                    });
+
+                    assertBridgeCapacity(state, estimatedBytes);
+
+                    const responseId = state.nextHttpResponseId++;
+                    state.httpResponses.set(responseId, {
+                        status: response.status,
+                        bodyText,
+                        headers,
+                        createdAtMs: Date.now(),
+                        estimatedBytes
+                    });
+
+                    return responseId >>> 0;
+                } catch (error) {
+                    console.error("[AresWasm] abi_http_fetch_blocking failed:", error);
+                    return 0;
                 }
-
-                const headers = normalizeHeaders(response.headers);
-                const estimatedBytes = estimateResponseBytes({
-                    bodyText,
-                    headers
-                });
-
-                assertBridgeCapacity(state, estimatedBytes);
-
-                const responseId = state.nextHttpResponseId++;
-                state.httpResponses.set(responseId, {
-                    status: response.status,
-                    bodyText,
-                    headers,
-                    createdAtMs: Date.now(),
-                    estimatedBytes
-                });
-
-                return responseId >>> 0;
             },
 
             abi_http_response_get_status(responseId: number): number {

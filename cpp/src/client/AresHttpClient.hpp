@@ -29,28 +29,8 @@ namespace AresWasmWorker {
         void configureBaseHeaders() {
             auto baseHeaders = std::map<std::string, std::string>({
                 {
-                    to_string_header(HttpHeader::CONTENT_TYPE),
-                    to_string_mime(AresWasmWorker::MimeType::JSON)
-                },
-                {
                     to_string_header(HttpHeader::ACCEPT),
                     to_string_mime(AresWasmWorker::MimeType::JSON)
-                },
-                {
-                    to_string_header(HttpHeader::ACCEPT_ENCODING),
-                    "gzip, br"
-                },
-                {
-                    to_string_header(HttpHeader::ACCEPT_LANGUAGE),
-                    "en-US,en;q=0.9"
-                },
-                {
-                    to_string_header(HttpHeader::CONNECTION),
-                    "keep-alive"
-                },
-                {
-                    to_string_header(HttpHeader::CACHE_CONTROL),
-                    "no-cache"
                 }
             });
 
@@ -63,9 +43,9 @@ namespace AresWasmWorker {
             }
         }
 
-         template<ResponseChecker BodyType>
-        std::unique_ptr<HttpResponse<BodyType>> makeRequestCall(
-            const std::string& apiAddress,
+        template<ResponseChecker BodyType>
+        std::unique_ptr<HttpResponse<BodyType> > makeRequestCall(
+            const std::string &apiAddress,
             const HttpMethod methodType
         ) {
             AresWasmWorker::abiLog("AresHttpClient: starting makeRequestCall");
@@ -90,7 +70,7 @@ namespace AresWasmWorker {
             }
 
             std::memcpy(
-                reinterpret_cast<void*>(requestPtr),
+                reinterpret_cast<void *>(requestPtr),
                 jsonData.c_str(),
                 jsonData.size() + 1
             );
@@ -119,22 +99,22 @@ namespace AresWasmWorker {
             );
 
             BodyType responseObj =
-                JsonExtensions::getResponseFromJson<BodyType>(rawResponse.body);
+                    JsonExtensions::getResponseFromJson<BodyType>(rawResponse.body);
 
             AresWasmWorker::abiLog("AresHttpClient: JSON parse success");
 
-            return std::make_unique<HttpResponse<BodyType>>(
+            return std::make_unique<HttpResponse<BodyType> >(
                 rawResponse.status,
-                std::make_shared<std::map<std::string, std::string>>(std::move(rawResponse.headers)),
+                std::make_shared<std::map<std::string, std::string> >(std::move(rawResponse.headers)),
                 std::move(responseObj)
             );
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
-        std::unique_ptr<HttpResponse<BodyType>> makeRequestCall(
-            const std::string& apiAddress,
+        std::unique_ptr<HttpResponse<BodyType> > makeRequestCall(
+            const std::string &apiAddress,
             const HttpMethod methodType,
-            const RequestBody& requestBody
+            const RequestBody &requestBody
         ) {
             auto targetAddress = configureAddress(apiAddress);
 
@@ -153,7 +133,7 @@ namespace AresWasmWorker {
             }
 
             std::memcpy(
-                reinterpret_cast<void*>(requestPtr),
+                reinterpret_cast<void *>(requestPtr),
                 jsonData.c_str(),
                 jsonData.size() + 1
             );
@@ -170,11 +150,11 @@ namespace AresWasmWorker {
             auto rawResponse = AbiHttpHelpers::readResponse(scoped.id());
 
             BodyType responseObj =
-                JsonExtensions::getResponseFromJson<BodyType>(rawResponse.body);
+                    JsonExtensions::getResponseFromJson<BodyType>(rawResponse.body);
 
-            return std::make_unique<HttpResponse<BodyType>>(
+            return std::make_unique<HttpResponse<BodyType> >(
                 rawResponse.status,
-                std::make_shared<std::map<std::string, std::string>>(std::move(rawResponse.headers)),
+                std::make_shared<std::map<std::string, std::string> >(std::move(rawResponse.headers)),
                 std::move(responseObj)
             );
         }
