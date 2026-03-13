@@ -83,9 +83,9 @@ namespace AresWasmWorker {
 
             auto jsonData = request.toJson();
 
-            auto requestPtr = alloc(static_cast<uint32_t>(jsonData.size() + 1));
+            auto requestPtr = malloc(static_cast<uint32_t>(jsonData.size() + 1));
             if (!requestPtr) {
-                throw std::runtime_error("alloc failed for request json");
+                throw std::runtime_error("malloc failed for request json");
             }
 
             std::memcpy(
@@ -132,9 +132,9 @@ namespace AresWasmWorker {
 
             auto jsonData = request.toJson();
 
-            auto requestPtr = alloc(static_cast<uint32_t>(jsonData.size() + 1));
+            auto requestPtr = malloc(static_cast<uint32_t>(jsonData.size() + 1));
             if (!requestPtr) {
-                throw std::runtime_error("alloc failed for request json");
+                throw std::runtime_error("malloc failed for request json");
             }
 
             std::memcpy(

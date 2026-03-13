@@ -44,7 +44,7 @@ namespace AresWasmWorker::AbiHttpHelpers {
             return {};
         }
 
-        const uint32_t keyPtr = alloc(static_cast<uint32_t>(key.size() + 1));
+        const uint32_t keyPtr = malloc(static_cast<uint32_t>(key.size() + 1));
         if (!keyPtr) {
             throw std::runtime_error("alloc failed for header key");
         }
