@@ -1,5 +1,5 @@
 {
-  "name": "wasmWorkers",
+  "name": "wasm-workers",
   "private": true,
   "scripts": {
     "dev": "wrangler dev --ip 0.0.0.0 --port 8787"

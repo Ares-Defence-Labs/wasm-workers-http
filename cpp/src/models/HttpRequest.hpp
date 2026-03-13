@@ -13,12 +13,17 @@ namespace AresWasmWorker {
         std::map<std::string, std::string> headers;
         std::optional<std::string> body;
 
-        explicit HttpRequest(std::string url, std::string method = "GET", std::map<std::string, std::string> headers,
+        explicit HttpRequest(std::string url, std::string method = "GET", std::map<std::string, std::string> headers = {},
                              std::optional<std::string> body = std::nullopt): url(url), method(method), headers(headers), body(body) {
         };
 
-        std::string toJson() {
-            return nlohmann::json::parse(this);
+        std::string toJson() const {
+            nlohmann::json j;
+            j["url"] = url;
+            j["method"] = method;
+            j["headers"] = headers;
+            j["body"] = body.has_value() ? nlohmann::json(*body) : nlohmann::json(nullptr);
+            return j.dump();
         }
     };
 }
