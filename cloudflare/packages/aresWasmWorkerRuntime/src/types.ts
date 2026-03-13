@@ -5,9 +5,18 @@ export interface WorkerExecutionContext {
 
 export type WasmExports = {
     memory: WebAssembly.Memory;
-    alloc: (size: number) => number;
+    alloc?: (size: number) => number;
+    _alloc?: (size: number) => number;
+    malloc?: (size: number) => number;
+    _malloc?: (size: number) => number;
+
     free_mem?: (ptr: number, size: number) => void;
+    _free_mem?: (ptr: number, size: number) => void;
+    free?: (ptr: number) => void;
+    _free?: (ptr: number) => void;
+
     app_init?: () => number | Promise<number>;
+    handle_http?: (requestJsonPtr: number) => number | Promise<number>;
     handle_http_json?: (requestJsonPtr: number) => number | Promise<number>;
 };
 

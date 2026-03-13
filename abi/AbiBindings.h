@@ -15,9 +15,6 @@ extern "C" {
     uint32_t abi_http_get_user_agent_name();
     void abi_log(uint32_t message_cstr_ptr);
 
-    // Exported from Wasm
-    uint32_t alloc(uint32_t size);
+    uint32_t malloc(uint32_t size);
     void free_mem(uint32_t ptr, uint32_t size);
-    uint32_t app_init();
-    uint32_t handle_http_json(uint32_t request_json_cstr_ptr);
 }

@@ -10,6 +10,11 @@ import {
     writeBytesIntoMemory,
     writeCString
 } from "./memory";
+import {
+    getAllocOrThrow,
+    getFreeOrThrow,
+    getMemoryOrThrow
+} from "./runtime";
 
 function getInstanceOrThrow<Env>(state: RuntimeState<Env>) {
     if (!state.instance) {
@@ -99,10 +104,23 @@ function getResponseByIdOrEmpty<Env>(
 
 export function createAresAbiImports<Env>(state: RuntimeState<Env>) {
     return {
-        ares_abi: {
+        env: {
+            malloc(size: number): number {
+                const instance = getInstanceOrThrow(state);
+                const alloc = getAllocOrThrow(instance);
+                return alloc(size) >>> 0;
+            },
+
+            free_mem(ptr: number, size: number): void {
+                const instance = getInstanceOrThrow(state);
+                const free = getFreeOrThrow(instance);
+                free(ptr >>> 0, size >>> 0);
+            },
+
             abi_log(messagePtr: number): void {
                 const instance = getInstanceOrThrow(state);
-                const message = readCString(instance.exports.memory, messagePtr);
+                const memory = getMemoryOrThrow(instance);
+                const message = readCString(memory, messagePtr);
 
                 if (state.options.onLog) {
                     state.options.onLog(message);
@@ -118,21 +136,17 @@ export function createAresAbiImports<Env>(state: RuntimeState<Env>) {
                 const userAgent =
                     ctx.request.headers.get("user-agent") ?? "Cloudflare-Worker";
 
-                return writeCString(
-                    instance.exports.memory,
-                    instance.exports.alloc,
-                    userAgent
-                );
+                const memory = getMemoryOrThrow(instance);
+                const alloc = getAllocOrThrow(instance);
+
+                return writeCString(memory, alloc, userAgent);
             },
 
             async abi_http_fetch_blocking(requestJsonCstrPtr: number): Promise<number> {
                 const instance = getInstanceOrThrow(state);
+                const memory = getMemoryOrThrow(instance);
 
-                const requestJson = readCString(
-                    instance.exports.memory,
-                    requestJsonCstrPtr
-                );
-
+                const requestJson = readCString(memory, requestJsonCstrPtr);
                 const outbound = JSON.parse(requestJson) as OutboundHttpRequestEnvelope;
 
                 const response = await fetch(outbound.url, {
@@ -186,10 +200,11 @@ export function createAresAbiImports<Env>(state: RuntimeState<Env>) {
                 maxLen: number
             ): number {
                 const instance = getInstanceOrThrow(state);
+                const memory = getMemoryOrThrow(instance);
                 const bodyText = getResponseByIdOrEmpty(state, responseId).bodyText;
 
                 return writeBytesIntoMemory(
-                    instance.exports.memory,
+                    memory,
                     outPtr,
                     encodeUtf8(bodyText),
                     maxLen
@@ -203,16 +218,14 @@ export function createAresAbiImports<Env>(state: RuntimeState<Env>) {
                 maxLen: number
             ): number {
                 const instance = getInstanceOrThrow(state);
-                const key = readCString(
-                    instance.exports.memory,
-                    keyCstrPtr
-                ).toLowerCase();
+                const memory = getMemoryOrThrow(instance);
+                const key = readCString(memory, keyCstrPtr).toLowerCase();
 
                 const value =
                     getResponseByIdOrEmpty(state, responseId).headers[key] ?? "";
 
                 return writeBytesIntoMemory(
-                    instance.exports.memory,
+                    memory,
                     outPtr,
                     encodeUtf8(value),
                     maxLen

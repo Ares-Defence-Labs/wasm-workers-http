@@ -43,13 +43,18 @@ export function writeCString(
     value: string
 ): number {
     const encoded = encoder.encode(value);
-    const ptr = alloc(encoded.length + 1);
+    const ptr = alloc(encoded.length + 1) >>> 0;
 
     if (!ptr) {
         throw new Error(`alloc failed for ${encoded.length + 1} bytes`);
     }
 
     const bytes = new Uint8Array(memory.buffer);
+
+    if (ptr + encoded.length + 1 > bytes.length) {
+        throw new Error("Allocated CString buffer exceeds wasm memory bounds");
+    }
+
     bytes.set(encoded, ptr);
     bytes[ptr + encoded.length] = 0;
 
