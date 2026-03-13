@@ -84,7 +84,7 @@ namespace AresWasmWorker {
             std::memcpy(reinterpret_cast<void*>(newCopy), jsonData.c_str(), jsonData.size() + 1);
 
             auto response = reinterpret_cast<char*>(abi_http_fetch_blocking(newCopy));
-            auto responseObj = JsonExtensions::getResponseFromJson<BodyType>(&response);
+            auto responseObj = JsonExtensions::getResponseFromJson<BodyType>(std::string(response));
 
             return std::make_unique<HttpResponse<BodyType>>(responseObj);
         }
@@ -109,7 +109,7 @@ namespace AresWasmWorker {
             std::memcpy(reinterpret_cast<void*>(newCopy), jsonData.c_str(), jsonData.size() + 1);
 
             auto response = reinterpret_cast<char*>(abi_http_fetch_blocking(newCopy));
-            auto responseObj = JsonExtensions::getResponseFromJson<BodyType>(&response);
+            auto responseObj = JsonExtensions::getResponseFromJson<BodyType>(std::string(response));
 
             return std::make_unique<HttpResponse<BodyType>>(responseObj);
         }
