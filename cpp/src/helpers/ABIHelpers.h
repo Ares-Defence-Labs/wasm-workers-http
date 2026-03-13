@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "LoggingHelper.h"
 #include "../../../abi/AbiBindings.h"
 #include "../models/RawHttpHostResponse.hpp"
 
@@ -96,11 +97,25 @@ namespace AresWasmWorker::AbiHttpHelpers {
     }
 
     inline RawHttpHostResponse readResponse(uint32_t responseId) {
+        AresWasmWorker::abiLog(
+            std::string("AbiHttpHelpers: readResponse responseId = ") + std::to_string(responseId)
+        );
+
         RawHttpHostResponse response;
-        response.responseId = responseId;
         response.status = abi_http_response_get_status(responseId);
+
+        AresWasmWorker::abiLog(
+            std::string("AbiHttpHelpers: status = ") + std::to_string(response.status)
+        );
+
         response.body = copyBody(responseId);
+        AresWasmWorker::abiLog(
+            std::string("AbiHttpHelpers: body = ") + response.body
+        );
+
         response.headers = copyKnownHeaders(responseId);
+        AresWasmWorker::abiLog("AbiHttpHelpers: headers copied");
+
         return response;
     }
 }

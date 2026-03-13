@@ -11,6 +11,7 @@
 #include "enums/Mimes.h"
 #include "extensions/JsonExtension.h"
 #include "helpers/ABIHelpers.h"
+#include "helpers/LoggingHelper.h"
 #include "models/HttpRequest.hpp"
 #include "nlohmann/json.hpp"
 
@@ -72,7 +73,10 @@ namespace AresWasmWorker {
             const std::string& apiAddress,
             const HttpMethod methodType
         ) {
+            AresWasmWorker::abiLog("AresHttpClient: starting makeRequestCall");
+
             auto targetAddress = configureAddress(apiAddress);
+            AresWasmWorker::abiLog(std::string("AresHttpClient: targetAddress = ") + targetAddress);
 
             HttpRequest request(
                 targetAddress,
@@ -82,9 +86,11 @@ namespace AresWasmWorker {
             );
 
             auto jsonData = request.toJson();
+            AresWasmWorker::abiLog(std::string("AresHttpClient: requestJson = ") + jsonData);
 
-            auto requestPtr = alloc(static_cast<uint32_t>(jsonData.size() + 1));
+            const uint32_t requestPtr = alloc(static_cast<uint32_t>(jsonData.size() + 1));
             if (!requestPtr) {
+                AresWasmWorker::abiLog("AresHttpClient: alloc failed for request json");
                 throw std::runtime_error("alloc failed for request json");
             }
 
@@ -94,19 +100,33 @@ namespace AresWasmWorker {
                 jsonData.size() + 1
             );
 
+            AresWasmWorker::abiLog("AresHttpClient: before abi_http_fetch_blocking");
             const auto responseId = abi_http_fetch_blocking(requestPtr);
+            AresWasmWorker::abiLog("AresHttpClient: after abi_http_fetch_blocking");
 
             free_mem(requestPtr, static_cast<uint32_t>(jsonData.size() + 1));
 
             if (!responseId) {
+                AresWasmWorker::abiLog("AresHttpClient: abi_http_fetch_blocking returned 0");
                 throw std::runtime_error("abi_http_fetch_blocking failed");
             }
+
+            AresWasmWorker::abiLog(std::string("AresHttpClient: responseId = ") + std::to_string(responseId));
 
             ScopedHostResponse scoped(responseId);
             auto rawResponse = AbiHttpHelpers::readResponse(scoped.id());
 
+            AresWasmWorker::abiLog(
+                std::string("AresHttpClient: raw status = ") + std::to_string(rawResponse.status)
+            );
+            AresWasmWorker::abiLog(
+                std::string("AresHttpClient: raw body = ") + rawResponse.body
+            );
+
             BodyType responseObj =
                 JsonExtensions::getResponseFromJson<BodyType>(rawResponse.body);
+
+            AresWasmWorker::abiLog("AresHttpClient: JSON parse success");
 
             return std::make_unique<HttpResponse<BodyType>>(
                 rawResponse.status,
