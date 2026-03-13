@@ -66,22 +66,52 @@ namespace AresWasmWorker {
             }
         }
 
-        template<ResponseChecker BodyType, RequestCheck RequestBody>
-        std::unique_ptr<HttpResponse<BodyType> > makeRequestCall(const std::string apiAddress,
-                                                                 const HttpMethod methodType,
-                                                                 const std::optional<RequestBody> requestBody = std::nullopt) {
-
+        template<ResponseChecker BodyType>
+         std::unique_ptr<HttpResponse<BodyType>> makeRequestCall(
+             const std::string apiAddress,
+             const HttpMethod methodType
+         ) {
             auto targetAddress = configureAddress(apiAddress);
-            auto request = HttpRequest(targetAddress, to_string_method(methodType), *headers, requestBody.has_value() ? requestBody : std::nullopt);
+            HttpRequest request(
+                targetAddress,
+                to_string_method(methodType),
+                *headers,
+                std::nullopt
+            );
 
             auto jsonData = request.toJson();
-            auto newCopy = alloc(jsonData.size() + 1); // create the new address
-            std::memcpy(reinterpret_cast<void *>(newCopy), jsonData.c_str(), jsonData.size() + 1);
+            auto newCopy = alloc(jsonData.size() + 1);
+            std::memcpy(reinterpret_cast<void*>(newCopy), jsonData.c_str(), jsonData.size() + 1);
 
-            auto response = reinterpret_cast<char *>(abi_http_fetch_blocking(newCopy));
+            auto response = reinterpret_cast<char*>(abi_http_fetch_blocking(newCopy));
             auto responseObj = JsonExtensions::getResponseFromJson<BodyType>(response);
 
-            return std::make_unique<HttpResponse>(responseObj);
+            return std::make_unique<HttpResponse<BodyType>>(responseObj);
+        }
+
+        template<ResponseChecker BodyType, RequestCheck RequestBody>
+        std::unique_ptr<HttpResponse<BodyType>> makeRequestCall(
+            const std::string apiAddress,
+            const HttpMethod methodType,
+            const RequestBody requestBody
+        ) {
+            auto targetAddress = configureAddress(apiAddress);
+
+            HttpRequest request(
+                targetAddress,
+                to_string_method(methodType),
+                *headers,
+                requestBody.toJson()
+            );
+
+            auto jsonData = request.toJson();
+            auto newCopy = alloc(jsonData.size() + 1);
+            std::memcpy(reinterpret_cast<void*>(newCopy), jsonData.c_str(), jsonData.size() + 1);
+
+            auto response = reinterpret_cast<char*>(abi_http_fetch_blocking(newCopy));
+            auto responseObj = JsonExtensions::getResponseFromJson<BodyType>(response);
+
+            return std::make_unique<HttpResponse<BodyType>>(responseObj);
         }
 
     public:
@@ -103,7 +133,7 @@ namespace AresWasmWorker {
         std::unique_ptr<HttpResponse<BodyType> > get(const std::string apiAddress) {
             verifyIfBaseAddress();
 
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::GET, std::nullopt);
+            return makeRequestCall<BodyType>(apiAddress, HttpMethod::GET);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
