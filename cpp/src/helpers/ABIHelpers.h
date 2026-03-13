@@ -1,10 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <cstdlib>
 #include <cstring>
 #include <map>
-#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -14,8 +12,8 @@
 
 namespace AresWasmWorker::AbiHttpHelpers {
 
-    inline std::string copyLastBody() {
-        const uint32_t len = abi_http_get_last_body_len();
+    inline std::string copyBody(uint32_t responseId) {
+        const uint32_t len = abi_http_response_get_body_len(responseId);
         if (len == 0) {
             return {};
         }
@@ -23,25 +21,30 @@ namespace AresWasmWorker::AbiHttpHelpers {
         std::string result;
         result.resize(len);
 
-        const auto copied = abi_http_copy_last_body(
+        const auto copied = abi_http_response_copy_body(
+            responseId,
             static_cast<uint32_t>(reinterpret_cast<uintptr_t>(result.data())),
             len
         );
 
         if (copied > len) {
-            throw std::runtime_error("abi_http_copy_last_body copied more than expected");
+            throw std::runtime_error("abi_http_response_copy_body copied more than expected");
         }
 
         result.resize(copied);
         return result;
     }
 
-    inline std::string copyLastHeader(const std::string& key, uint32_t maxLen = 8192) {
+    inline std::string copyHeader(
+        uint32_t responseId,
+        const std::string& key,
+        uint32_t maxLen = 8192
+    ) {
         if (key.empty()) {
             return {};
         }
 
-        auto* keyPtr = alloc(static_cast<uint32_t>(key.size() + 1));
+        const uint32_t keyPtr = alloc(static_cast<uint32_t>(key.size() + 1));
         if (!keyPtr) {
             throw std::runtime_error("alloc failed for header key");
         }
@@ -51,7 +54,8 @@ namespace AresWasmWorker::AbiHttpHelpers {
         std::string value;
         value.resize(maxLen);
 
-        const auto copied = abi_http_copy_last_header(
+        const auto copied = abi_http_response_copy_header(
+            responseId,
             keyPtr,
             static_cast<uint32_t>(reinterpret_cast<uintptr_t>(value.data())),
             maxLen
@@ -60,17 +64,16 @@ namespace AresWasmWorker::AbiHttpHelpers {
         free_mem(keyPtr, static_cast<uint32_t>(key.size() + 1));
 
         if (copied > maxLen) {
-            throw std::runtime_error("abi_http_copy_last_header copied more than maxLen");
+            throw std::runtime_error("abi_http_response_copy_header copied more than maxLen");
         }
 
         value.resize(copied);
         return value;
     }
 
-    inline std::map<std::string, std::string> copyKnownHeaders() {
+    inline std::map<std::string, std::string> copyKnownHeaders(uint32_t responseId) {
         std::map<std::string, std::string> out;
 
-        // Add whichever headers you care about reading back.
         static const std::vector<std::string> knownHeaders = {
             "content-type",
             "content-length",
@@ -83,7 +86,7 @@ namespace AresWasmWorker::AbiHttpHelpers {
         };
 
         for (const auto& key : knownHeaders) {
-            auto value = copyLastHeader(key);
+            auto value = copyHeader(responseId, key);
             if (!value.empty()) {
                 out[key] = value;
             }
@@ -92,11 +95,11 @@ namespace AresWasmWorker::AbiHttpHelpers {
         return out;
     }
 
-    inline RawHttpHostResponse getLastResponse() {
+    inline RawHttpHostResponse readResponse(uint32_t responseId) {
         RawHttpHostResponse response;
-        response.status = abi_http_get_last_status();
-        response.body = copyLastBody();
-        response.headers = copyKnownHeaders();
+        response.status = abi_http_response_get_status(responseId);
+        response.body = copyBody(responseId);
+        response.headers = copyKnownHeaders(responseId);
         return response;
     }
 }
