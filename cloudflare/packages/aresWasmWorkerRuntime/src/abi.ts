@@ -105,7 +105,7 @@ function getResponseByIdOrEmpty<Env>(
 export function createAresAbiImports<Env>(state: RuntimeState<Env>) {
     return {
         env: {
-            malloc(size: number): number {
+            alloc(size: number): number {
                 const instance = getInstanceOrThrow(state);
                 const alloc = getAllocOrThrow(instance);
                 return alloc(size) >>> 0;
