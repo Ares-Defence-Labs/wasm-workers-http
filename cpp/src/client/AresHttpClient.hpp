@@ -20,8 +20,8 @@ namespace AresWasmWorker {
         std::unique_ptr<std::string> baseAddress;
         std::unique_ptr<std::map<std::string, std::string> > headers;
 
-        std::string configureAddress(std::string apiName) {
-            return std::format("{}/{}", baseAddress, apiName);
+        std::string configureAddress(std::string apiName) const {
+            return std::format("{}/{}", *baseAddress, apiName);
         }
 
         void configureBaseHeaders() {
@@ -69,9 +69,9 @@ namespace AresWasmWorker {
         template<ResponseChecker BodyType, RequestCheck RequestBody>
         std::unique_ptr<HttpResponse<BodyType> > makeRequestCall(const std::string apiAddress,
                                                                  const HttpMethod methodType,
-                                                                 const std::optional<RequestBody> requestBody) {
+                                                                 const std::optional<RequestBody> requestBody = std::nullopt) {
 
-            auto targetAddress = configureAddress(apiAddress);
+            auto targetAddress = this.configureAddress(apiAddress);
             auto request = HttpRequest(targetAddress, to_string_method(methodType), *headers, requestBody.has_value() ? requestBody : std::nullopt);
 
             auto jsonData = request.toJson();
