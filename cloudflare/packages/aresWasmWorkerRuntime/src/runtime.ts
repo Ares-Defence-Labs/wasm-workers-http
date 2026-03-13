@@ -63,8 +63,8 @@ export class AresWorkerRuntime<Env = unknown> {
         this.setRequestContext({ request, env, ctx });
 
         try {
-            if (!this.instance.exports.handle_http) {
-                throw new Error("Wasm export handle_http() was not found.");
+            if (!this.instance.exports.handle_http_json) {
+                throw new Error("Wasm export handle_http_json() was not found.");
             }
 
             const requestBody = await request.text();
@@ -82,7 +82,7 @@ export class AresWorkerRuntime<Env = unknown> {
                 inboundEnvelope
             );
 
-            const responsePtr = this.instance.exports.handle_http(requestPtr);
+            const responsePtr = this.instance.exports.handle_http_json(requestPtr);
             const responseJson = readCString(this.instance.exports.memory, responsePtr);
             const responseEnvelope = JSON.parse(responseJson) as ResponseEnvelope;
 

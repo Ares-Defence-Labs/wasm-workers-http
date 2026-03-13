@@ -8,7 +8,7 @@ export type WasmExports = {
     alloc: (size: number) => number;
     free_mem?: (ptr: number, size: number) => void;
     app_init?: () => number;
-    handle_http?: (requestJsonPtr: number) => number;
+    handle_http_json?: (requestJsonPtr: number) => number;
 };
 
 export type WasmInstanceWithExports = WebAssembly.Instance & {

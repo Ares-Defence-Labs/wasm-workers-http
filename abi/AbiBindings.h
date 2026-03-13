@@ -16,6 +16,6 @@ extern "C" {
     uint32_t alloc(uint32_t size);
     void free_mem(uint32_t ptr, uint32_t size);
     uint32_t app_init();
-    uint32_t handle_http(uint32_t request_json_cstr_ptr);
+    uint32_t handle_http_json(uint32_t request_json_cstr_ptr);
     uint32_t get_response_len();
 }
