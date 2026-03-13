@@ -124,27 +124,27 @@ namespace AresWasmWorker {
         std::unique_ptr<HttpResponse<BodyType> > patch(std::string apiAddress) {
             verifyIfBaseAddress();
 
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::PATCH, requestBody);
+            return makeRequestCall<BodyType>(apiAddress, HttpMethod::PATCH);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
         std::unique_ptr<HttpResponse<BodyType> > put(std::string apiAddress) {
             verifyIfBaseAddress();
 
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::PUT, requestBody);
+            return makeRequestCall<BodyType>(apiAddress, HttpMethod::PUT);
         }
 
         template<ResponseChecker BodyType>
         std::unique_ptr<HttpResponse<BodyType> > head(std::string apiAddress) {
             verifyIfBaseAddress();
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::HEAD, requestBody);
+            return makeRequestCall<BodyType>(apiAddress, HttpMethod::HEAD);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
         std::unique_ptr<HttpResponse<BodyType> > options(std::string apiAddress) {
             verifyIfBaseAddress();
 
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::OPTIONS, requestBody);
+            return makeRequestCall<BodyType>(apiAddress, HttpMethod::OPTIONS);
         }
     };
 }
