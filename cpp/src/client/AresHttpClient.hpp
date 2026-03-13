@@ -49,8 +49,8 @@ namespace AresWasmWorker {
                 },
                 {
                     // user agent must come from the runtime (cloudflare worker)
-                    to_string_header(HttpHeader::USER_AGENT),
-                    reinterpret_cast<const char *>(abi_http_get_user_agent_name())
+                    // to_string_header(HttpHeader::USER_AGENT),
+                    // reinterpret_cast<const char *>(abi_http_get_user_agent_name())
                 },
                 {
                     to_string_header(HttpHeader::CACHE_CONTROL),
