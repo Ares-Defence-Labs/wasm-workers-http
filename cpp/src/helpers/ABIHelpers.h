@@ -21,7 +21,7 @@ namespace AresWasmWorker::AbiHttpHelpers {
         std::string result;
         result.resize(len);
 
-        const auto copied = abi_http_response_copy_body(
+        const uint32_t copied = abi_http_response_copy_body(
             responseId,
             static_cast<uint32_t>(reinterpret_cast<uintptr_t>(result.data())),
             len
@@ -54,7 +54,7 @@ namespace AresWasmWorker::AbiHttpHelpers {
         std::string value;
         value.resize(maxLen);
 
-        const auto copied = abi_http_response_copy_header(
+        const uint32_t copied = abi_http_response_copy_header(
             responseId,
             keyPtr,
             static_cast<uint32_t>(reinterpret_cast<uintptr_t>(value.data())),
@@ -86,7 +86,7 @@ namespace AresWasmWorker::AbiHttpHelpers {
         };
 
         for (const auto& key : knownHeaders) {
-            auto value = copyHeader(responseId, key);
+            const auto value = copyHeader(responseId, key);
             if (!value.empty()) {
                 out[key] = value;
             }
@@ -97,6 +97,7 @@ namespace AresWasmWorker::AbiHttpHelpers {
 
     inline RawHttpHostResponse readResponse(uint32_t responseId) {
         RawHttpHostResponse response;
+        response.responseId = responseId;
         response.status = abi_http_response_get_status(responseId);
         response.body = copyBody(responseId);
         response.headers = copyKnownHeaders(responseId);
