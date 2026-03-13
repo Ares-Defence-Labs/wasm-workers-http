@@ -105,6 +105,20 @@ function getResponseByIdOrEmpty<Env>(
 export function createAresAbiImports<Env>(state: RuntimeState<Env>) {
     return {
         env: {
+            emscripten_notify_memory_growth: () => {},
+            emscripten_date_now: () => Date.now(),
+            emscripten_get_now: () => performance.now(),
+            abort: (
+                msg?: unknown,
+                file?: unknown,
+                line?: number,
+                col?: number
+            ): never => {
+                throw new Error(
+                    `abort: ${String(msg)} @ ${String(file)}:${String(line)}:${String(col)}`
+                );
+            },
+
             alloc(size: number): number {
                 const instance = getInstanceOrThrow(state);
                 const alloc = getAllocOrThrow(instance);
