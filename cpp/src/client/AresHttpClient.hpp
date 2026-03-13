@@ -71,7 +71,7 @@ namespace AresWasmWorker {
                                                                  const HttpMethod methodType,
                                                                  const std::optional<RequestBody> requestBody = std::nullopt) {
 
-            auto targetAddress = this.configureAddress(apiAddress);
+            auto targetAddress = configureAddress(apiAddress);
             auto request = HttpRequest(targetAddress, to_string_method(methodType), *headers, requestBody.has_value() ? requestBody : std::nullopt);
 
             auto jsonData = request.toJson();
