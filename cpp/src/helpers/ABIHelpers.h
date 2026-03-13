@@ -11,7 +11,6 @@
 
 #include "../../../abi/AbiBindings.h"
 #include "../models/RawHttpHostResponse.hpp"
-#include "models/RawResponseModel.hpp"
 
 namespace AresWasmWorker::AbiHttpHelpers {
 

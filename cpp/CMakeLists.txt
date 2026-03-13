@@ -3,8 +3,9 @@ cmake_minimum_required(VERSION 3.21)
 project(wasm_workers_http_cpp LANGUAGES CXX)
 
 add_library(wasm_workers_http INTERFACE
-        src/models/RawResponseModel.hpp
+        src/models/RawHttpHostResponse.hpp
         src/helpers/ABIHelpers.h)
+
 add_library(ares::wasm-workers-http ALIAS wasm_workers_http)
 
 target_compile_features(wasm_workers_http INTERFACE cxx_std_20)
