@@ -14,7 +14,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "$env{EMSCRIPTEN_TOOLCHAIN_FILE}",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "/opt/homebrew/Cellar/emscripten/5.0.2/libexec/cmake/Modules/Platform/Emscripten.cmake",
         "VCPKG_TARGET_TRIPLET": "wasm32-emscripten",
         "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cpp/vcpkg-triplets",
         "VCPKG_INSTALLED_DIR": "${sourceDir}/cpp/vcpkg_installed"

@@ -174,6 +174,7 @@ export function createAresAbiImports<Env>(state: RuntimeState<Env>) {
                         body: outbound.body ?? undefined
                     });
 
+                    console.log("[AresWasm] abi_http_fetch_blocking fetch completed, status =", response.status);
                     const bodyText = await response.text();
                     const bodyBytes = utf8ByteLength(bodyText);
 
