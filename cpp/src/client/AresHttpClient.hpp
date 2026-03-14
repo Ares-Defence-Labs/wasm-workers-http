@@ -78,7 +78,7 @@ namespace AresWasmWorker {
             );
 
             AresWasmWorker::abiLog("AresHttpClient: before abi_http_fetch_blocking");
-            const auto responseId = abi_http_fetch_blocking(requestPtr);
+            const auto responseId = abi_http_fetch_blocking_async(requestPtr);
             AresWasmWorker::abiLog("AresHttpClient: after abi_http_fetch_blocking");
 
             free_mem(requestPtr, static_cast<uint32_t>(jsonData.size() + 1));
@@ -140,7 +140,7 @@ namespace AresWasmWorker {
                 jsonData.size() + 1
             );
 
-            const auto responseId = abi_http_fetch_blocking(requestPtr);
+            const auto responseId = abi_http_fetch_blocking_async(requestPtr);
 
             free_mem(requestPtr, static_cast<uint32_t>(jsonData.size() + 1));
 

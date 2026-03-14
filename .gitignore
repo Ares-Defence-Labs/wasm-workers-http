@@ -10,6 +10,7 @@ build-wasm/
 out/
 bin/
 obj/
+cmake-local-presets.json
 
 # CMake generated files
 CMakeFiles/
@@ -109,3 +110,5 @@ logs/
 tmp/
 temp/
 .cache/
+/cmake-local-presets.json
+/scripts/emscripten-env.sh
