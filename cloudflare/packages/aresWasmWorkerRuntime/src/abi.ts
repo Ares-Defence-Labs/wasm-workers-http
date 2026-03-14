@@ -156,58 +156,65 @@ export function createAresAbiImports<Env>(state: RuntimeState<Env>) {
                 return writeCString(memory, alloc, userAgent);
             },
 
-            __asyncjs__abi_http_fetch_blocking_async: async (requestJsonCstrPtr: number): Promise<number> => {
-                const instance = getInstanceOrThrow(state);
-                const memory = getMemoryOrThrow(instance);
-
-                try {
-                    const requestJson = readCString(memory, requestJsonCstrPtr);
-                    const outbound = JSON.parse(requestJson) as OutboundHttpRequestEnvelope;
-
-                    if (state.options.debug) {
-                        console.log("[AresWasm] abi_http_fetch_blocking outbound =", outbound);
-                    }
-
-                    const response = await fetch(outbound.url, {
-                        method: outbound.method ?? "GET",
-                        headers: outbound.headers,
-                        body: outbound.body ?? undefined
-                    });
-
-                    console.log("[AresWasm] abi_http_fetch_blocking fetch completed, status =", response.status);
-                    const bodyText = await response.text();
-                    const bodyBytes = utf8ByteLength(bodyText);
-
-                    if (bodyBytes > state.options.maxResponseBodyBytes) {
-                        throw new Error(
-                            `HTTP response body too large: ${bodyBytes} bytes exceeds maxResponseBodyBytes=${state.options.maxResponseBodyBytes}`
-                        );
-                    }
-
-                    const headers = normalizeHeaders(response.headers);
-                    const estimatedBytes = estimateResponseBytes({
-                        bodyText,
-                        headers
-                    });
-
-                    assertBridgeCapacity(state, estimatedBytes);
-
-                    const responseId = state.nextHttpResponseId++;
-                    state.httpResponses.set(responseId, {
-                        status: response.status,
-                        bodyText,
-                        headers,
-                        createdAtMs: Date.now(),
-                        estimatedBytes
-                    });
-
-                    return responseId >>> 0;
-                } catch (error) {
-                    console.error("[AresWasm] abi_http_fetch_blocking failed:", error);
-                    return 0;
+            abi_http_fetch_blocking_async(requestJsonCstrPtr: number): number {
+                const Asyncify = (globalThis as any).Asyncify;
+                if (!Asyncify?.handleAsync) {
+                    throw new Error("Asyncify.handleAsync is not available in this runtime");
                 }
-            },
 
+                return Asyncify.handleAsync(async () => {
+                    const instance = getInstanceOrThrow(state);
+                    const memory = getMemoryOrThrow(instance);
+
+                    try {
+                        const requestJson = readCString(memory, requestJsonCstrPtr);
+                        const outbound = JSON.parse(requestJson) as OutboundHttpRequestEnvelope;
+
+                        if (state.options.debug) {
+                            console.log("[AresWasm] abi_http_fetch_blocking outbound =", outbound);
+                        }
+
+                        const response = await fetch(outbound.url, {
+                            method: outbound.method ?? "GET",
+                            headers: outbound.headers,
+                            body: outbound.body ?? undefined
+                        });
+
+                        console.log("[AresWasm] abi_http_fetch_blocking fetch completed, status =", response.status);
+
+                        const bodyText = await response.text();
+                        const bodyBytes = utf8ByteLength(bodyText);
+
+                        if (bodyBytes > state.options.maxResponseBodyBytes) {
+                            throw new Error(
+                                `HTTP response body too large: ${bodyBytes} bytes exceeds maxResponseBodyBytes=${state.options.maxResponseBodyBytes}`
+                            );
+                        }
+
+                        const headers = normalizeHeaders(response.headers);
+                        const estimatedBytes = estimateResponseBytes({
+                            bodyText,
+                            headers
+                        });
+
+                        assertBridgeCapacity(state, estimatedBytes);
+
+                        const responseId = state.nextHttpResponseId++;
+                        state.httpResponses.set(responseId, {
+                            status: response.status,
+                            bodyText,
+                            headers,
+                            createdAtMs: Date.now(),
+                            estimatedBytes
+                        });
+
+                        return responseId >>> 0;
+                    } catch (error) {
+                        console.error("[AresWasm] abi_http_fetch_blocking failed:", error);
+                        return 0;
+                    }
+                });
+            },
             abi_http_response_get_status(responseId: number): number {
                 return getResponseByIdOrEmpty(state, responseId).status >>> 0;
             },
