@@ -24,23 +24,3 @@ target_include_directories(wasm_workers_http
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
         $<INSTALL_INTERFACE:include>
 )
-
-if (EMSCRIPTEN)
-    find_program(EMCC_PATH emcc REQUIRED)
-    get_filename_component(EMCC_REAL "${EMCC_PATH}" REALPATH)
-    get_filename_component(EMCC_BIN_DIR "${EMCC_REAL}" DIRECTORY)
-    get_filename_component(EMSCRIPTEN_ROOT "${EMCC_BIN_DIR}/../libexec" ABSOLUTE)
-    set(EMSCRIPTEN_SYSTEM_INCLUDE "${EMSCRIPTEN_ROOT}/system/include")
-
-    if (NOT EXISTS "${EMSCRIPTEN_SYSTEM_INCLUDE}/emscripten/emscripten.h")
-        message(FATAL_ERROR
-                "Could not find emscripten headers at: ${EMSCRIPTEN_SYSTEM_INCLUDE}\n"
-                "Expected: ${EMSCRIPTEN_SYSTEM_INCLUDE}/emscripten/emscripten.h"
-        )
-    endif()
-
-    target_include_directories(wasm_workers_http
-            INTERFACE
-            $<BUILD_INTERFACE:${EMSCRIPTEN_SYSTEM_INCLUDE}>
-    )
-endif()
