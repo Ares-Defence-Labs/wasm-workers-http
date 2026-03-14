@@ -156,7 +156,7 @@ export function createAresAbiImports<Env>(state: RuntimeState<Env>) {
                 return writeCString(memory, alloc, userAgent);
             },
 
-            async abi_http_fetch_blocking(requestJsonCstrPtr: number): Promise<number> {
+            __asyncjs__abi_http_fetch_blocking_async: async (requestJsonCstrPtr: number): Promise<number> => {
                 const instance = getInstanceOrThrow(state);
                 const memory = getMemoryOrThrow(instance);
 
