@@ -24,8 +24,13 @@ namespace AresWasmWorker {
         std::unique_ptr<std::string> baseAddress;
         std::unique_ptr<std::map<std::string, std::string> > headers;
 
-        std::string configureAddress(std::string apiName) const {
-            return std::format("{}/{}", *baseAddress, apiName);
+        [[nodiscard]] std::string configureAddress(std::string apiName) const {
+            const auto baseAddr = *baseAddress;
+            if (baseAddr.empty()) {
+                return apiName;
+            }
+
+            return std::format("{}/{}", baseAddr, apiName);
         }
 
         void configureBaseHeaders() {
@@ -33,17 +38,37 @@ namespace AresWasmWorker {
                 {
                     to_string_header(HttpHeader::ACCEPT),
                     to_string_mime(AresWasmWorker::MimeType::JSON)
+                },
+
+                // Security headers
+                {
+                    "X-Content-Type-Options",
+                    "nosniff"
+                },
+                {
+                    "X-Frame-Options",
+                    "DENY"
+                },
+                {
+                    "Content-Security-Policy",
+                    "default-src 'none'"
+                },
+
+                // Explicit content type
+                {
+                    "Content-Type",
+                    to_string_mime(AresWasmWorker::MimeType::JSON)
                 }
             });
 
-            headers = std::make_unique<std::map<std::string, std::string> >(baseHeaders);
+            headers = std::make_unique<std::map<std::string, std::string>>(baseHeaders);
         }
 
-        void verifyIfBaseAddress() const {
-            if (!baseAddress) {
-                throw std::runtime_error("base address has not been configured");
-            }
-        }
+        // void verifyIfBaseAddress() const {
+        //     if (!baseAddress) {
+        //         throw std::runtime_error("base address has not been configured");
+        //     }
+        // }
 
         template<ResponseChecker BodyType>
         std::unique_ptr<HttpResponse<BodyType> > makeRequestCall(
@@ -51,7 +76,6 @@ namespace AresWasmWorker {
             const HttpMethod methodType
         ) {
             AresWasmWorker::abiLog("AresHttpClient: starting makeRequestCall");
-
             auto targetAddress = configureAddress(apiAddress);
             AresWasmWorker::abiLog(std::string("AresHttpClient: targetAddress = ") + targetAddress);
 
@@ -178,48 +202,48 @@ namespace AresWasmWorker {
 
         template<ResponseChecker BodyType>
         std::unique_ptr<HttpResponse<BodyType> > get(const std::string apiAddress) {
-            verifyIfBaseAddress();
+            //  verifyIfBaseAddress();
 
             return makeRequestCall<BodyType>(apiAddress, HttpMethod::GET);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
         std::unique_ptr<HttpResponse<BodyType> > post(std::string apiAddress, RequestBody requestBody) {
-            verifyIfBaseAddress();
+            //verifyIfBaseAddress();
 
             return makeRequestCall<BodyType>(apiAddress, HttpMethod::POST, requestBody);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
         std::unique_ptr<HttpResponse<BodyType> > delete_(std::string apiAddress, RequestBody requestBody) {
-            verifyIfBaseAddress();
+            //  verifyIfBaseAddress();
 
             return makeRequestCall<BodyType>(apiAddress, HttpMethod::DELETE_, requestBody);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
         std::unique_ptr<HttpResponse<BodyType> > patch(std::string apiAddress) {
-            verifyIfBaseAddress();
+            //  verifyIfBaseAddress();
 
             return makeRequestCall<BodyType>(apiAddress, HttpMethod::PATCH);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
         std::unique_ptr<HttpResponse<BodyType> > put(std::string apiAddress) {
-            verifyIfBaseAddress();
+            // verifyIfBaseAddress();
 
             return makeRequestCall<BodyType>(apiAddress, HttpMethod::PUT);
         }
 
         template<ResponseChecker BodyType>
         std::unique_ptr<HttpResponse<BodyType> > head(std::string apiAddress) {
-            verifyIfBaseAddress();
+            //  verifyIfBaseAddress();
             return makeRequestCall<BodyType>(apiAddress, HttpMethod::HEAD);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
         std::unique_ptr<HttpResponse<BodyType> > options(std::string apiAddress) {
-            verifyIfBaseAddress();
+            //  verifyIfBaseAddress();
 
             return makeRequestCall<BodyType>(apiAddress, HttpMethod::OPTIONS);
         }

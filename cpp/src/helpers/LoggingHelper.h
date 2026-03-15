@@ -7,7 +7,7 @@
 
 namespace AresWasmWorker {
     inline void abiLog(const std::string& message) {
-        const uint32_t len = static_cast<uint32_t>(message.size() + 1);
+        const auto len = static_cast<uint32_t>(message.size() + 1);
         const uint32_t ptr = alloc(len);
         if (!ptr) {
             return;
