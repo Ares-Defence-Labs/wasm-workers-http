@@ -13,8 +13,14 @@ namespace AresWasmWorker {
         std::map<std::string, std::string> headers;
         std::optional<std::string> body;
 
-        explicit HttpRequest(std::string url, std::string method = "GET", std::map<std::string, std::string> headers = {},
-                             std::optional<std::string> body = std::nullopt): url(url), method(method), headers(headers), body(body) {
+        HttpRequest() = default;
+
+        virtual ~HttpRequest() = default;
+
+        explicit HttpRequest(std::string url, std::string method = "GET",
+                             std::map<std::string, std::string> headers = {},
+                             std::optional<std::string> body = std::nullopt): url(url), method(method),
+                                                                              headers(headers), body(body) {
         };
 
         std::string toJson() const {
