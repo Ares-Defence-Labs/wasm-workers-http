@@ -61,7 +61,7 @@ namespace AresWasmWorker {
                 }
             });
 
-            headers = std::make_unique<std::map<std::string, std::string>>(baseHeaders);
+            headers = std::make_unique<std::map<std::string, std::string> >(baseHeaders);
         }
 
         // void verifyIfBaseAddress() const {
@@ -73,16 +73,19 @@ namespace AresWasmWorker {
         template<ResponseChecker BodyType>
         std::unique_ptr<HttpResponse<BodyType> > makeRequestCall(
             const std::string &apiAddress,
-            const HttpMethod methodType
+            const HttpMethod methodType,
+            const std::map<std::string, std::string> &customHeaders = {}
         ) {
             AresWasmWorker::abiLog("AresHttpClient: starting makeRequestCall");
             auto targetAddress = configureAddress(apiAddress);
             AresWasmWorker::abiLog(std::string("AresHttpClient: targetAddress = ") + targetAddress);
 
+            auto requestHeaders = *headers;
+            requestHeaders.insert(customHeaders.begin(), customHeaders.end());
             HttpRequest request(
                 targetAddress,
                 to_string_method(methodType),
-                *headers,
+                requestHeaders,
                 std::nullopt
             );
 
@@ -140,14 +143,17 @@ namespace AresWasmWorker {
         std::unique_ptr<HttpResponse<BodyType> > makeRequestCall(
             const std::string &apiAddress,
             const HttpMethod methodType,
-            const RequestBody &requestBody
+            const RequestBody &requestBody,
+            const std::map<std::string, std::string> &customHeaders = {}
         ) {
             auto targetAddress = configureAddress(apiAddress);
 
+            auto requestHeaders = *headers;
+            requestHeaders.insert(customHeaders.begin(), customHeaders.end());
             HttpRequest request(
                 targetAddress,
                 to_string_method(methodType),
-                *headers,
+                requestHeaders,
                 requestBody.toJson()
             );
 
@@ -201,51 +207,59 @@ namespace AresWasmWorker {
         }
 
         template<ResponseChecker BodyType>
-        std::unique_ptr<HttpResponse<BodyType> > get(const std::string apiAddress) {
+        std::unique_ptr<HttpResponse<BodyType> > get(const std::string apiAddress,
+                                                     const std::map<std::string, std::string> &customHeaders = {}) {
             //  verifyIfBaseAddress();
 
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::GET);
+            return makeRequestCall<BodyType>(apiAddress, HttpMethod::GET, customHeaders);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
-        std::unique_ptr<HttpResponse<BodyType> > post(std::string apiAddress, RequestBody requestBody) {
+        std::unique_ptr<HttpResponse<BodyType> > post(std::string apiAddress, RequestBody requestBody,
+
+                                                      const std::map<std::string, std::string> &customHeaders = {}) {
             //verifyIfBaseAddress();
 
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::POST, requestBody);
+            return makeRequestCall<BodyType>(apiAddress, HttpMethod::POST, requestBody, customHeaders);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
-        std::unique_ptr<HttpResponse<BodyType> > delete_(std::string apiAddress, RequestBody requestBody) {
+        std::unique_ptr<HttpResponse<BodyType> > delete_(std::string apiAddress, RequestBody requestBody,
+                                                         const std::map<std::string, std::string> &customHeaders = {}) {
             //  verifyIfBaseAddress();
 
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::DELETE_, requestBody);
+            return makeRequestCall<BodyType>(apiAddress, HttpMethod::DELETE_, requestBody, customHeaders);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
-        std::unique_ptr<HttpResponse<BodyType> > patch(std::string apiAddress) {
+        std::unique_ptr<HttpResponse<BodyType> > patch(std::string apiAddress,
+                                                       const std::map<std::string, std::string> &customHeaders = {}) {
             //  verifyIfBaseAddress();
 
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::PATCH);
+            return makeRequestCall<BodyType>(apiAddress, HttpMethod::PATCH, customHeaders);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
-        std::unique_ptr<HttpResponse<BodyType> > put(std::string apiAddress) {
+        std::unique_ptr<HttpResponse<BodyType> > put(std::string apiAddress,
+                                                     const std::map<std::string, std::string> &customHeaders = {}) {
             // verifyIfBaseAddress();
 
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::PUT);
+            return makeRequestCall<BodyType>(apiAddress, HttpMethod::PUT, customHeaders);
         }
 
         template<ResponseChecker BodyType>
-        std::unique_ptr<HttpResponse<BodyType> > head(std::string apiAddress) {
+        std::unique_ptr<HttpResponse<BodyType> > head(std::string apiAddress,
+                                                      const std::map<std::string, std::string> &customHeaders = {}) {
             //  verifyIfBaseAddress();
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::HEAD);
+            return makeRequestCall<BodyType>(apiAddress, HttpMethod::HEAD, customHeaders);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
-        std::unique_ptr<HttpResponse<BodyType> > options(std::string apiAddress) {
+        std::unique_ptr<HttpResponse<BodyType> > options(std::string apiAddress,
+                                                         const std::map<std::string, std::string> &customHeaders = {}) {
             //  verifyIfBaseAddress();
 
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::OPTIONS);
+            return makeRequestCall<BodyType>(apiAddress, HttpMethod::OPTIONS, customHeaders);
         }
     };
 }
