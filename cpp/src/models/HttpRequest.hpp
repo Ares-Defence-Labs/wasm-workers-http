@@ -31,5 +31,7 @@ namespace AresWasmWorker {
             j["body"] = body.has_value() ? nlohmann::json(*body) : nlohmann::json(nullptr);
             return j.dump();
         }
+
+        virtual std::string toJsonCustom() = 0;
     };
 }

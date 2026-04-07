@@ -144,7 +144,8 @@ namespace AresWasmWorker {
             const std::string &apiAddress,
             const HttpMethod methodType,
             const RequestBody &requestBody,
-            const std::map<std::string, std::string> &customHeaders = {}
+            const std::map<std::string, std::string> &customHeaders = {},
+            const std::optional<std::string> &jsonBody = std::nullopt
         ) {
             auto targetAddress = configureAddress(apiAddress);
 
@@ -154,7 +155,7 @@ namespace AresWasmWorker {
                 targetAddress,
                 to_string_method(methodType),
                 requestHeaders,
-                requestBody.toJson()
+                jsonBody.value_or(requestBody.toJson())
             );
 
             auto jsonData = request.toJson();
@@ -217,10 +218,10 @@ namespace AresWasmWorker {
         template<ResponseChecker BodyType, RequestCheck RequestBody>
         std::unique_ptr<HttpResponse<BodyType> > post(std::string apiAddress, RequestBody requestBody,
 
-                                                      const std::map<std::string, std::string> &customHeaders = {}) {
+                                                      const std::map<std::string, std::string> &customHeaders = {},
+                                                      const std::optional<std::string> jsonBody = std::nullopt) {
             //verifyIfBaseAddress();
-
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::POST, requestBody, customHeaders);
+            return makeRequestCall<BodyType>(apiAddress, HttpMethod::POST, requestBody, customHeaders, jsonBody);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
