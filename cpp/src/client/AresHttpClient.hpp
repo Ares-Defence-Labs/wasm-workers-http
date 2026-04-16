@@ -42,7 +42,7 @@ namespace AresWasmWorker {
 
             auto targetAddress = configureAddress(apiAddress);
 
-            auto jsonData = nlohmann::json(request).dump();
+            auto jsonData = request.toJson();
             auto requestPtr = alloc(static_cast<uint32_t>(jsonData.size() + 1));
             if (!requestPtr) {
                 throw std::runtime_error("alloc failed for request json");
