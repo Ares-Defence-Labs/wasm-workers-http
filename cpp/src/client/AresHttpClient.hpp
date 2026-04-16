@@ -32,15 +32,49 @@ namespace AresWasmWorker {
             return std::format("{}/{}", baseAddr, apiName);
         }
 
+        template<RequestCheck Request>
+        void appendDefaultHeaders(Request &request) const {
+            auto baseHeaders = std::map<std::string, std::string>({
+                {
+                    to_string_header(HttpHeader::ACCEPT),
+                    to_string_mime(AresWasmWorker::MimeType::JSON)
+                },
+
+                // Security headers
+                {
+                    "X-Content-Type-Options",
+                    "nosniff"
+                },
+                {
+                    "X-Frame-Options",
+                    "DENY"
+                },
+                {
+                    "Content-Security-Policy",
+                    "default-src 'none'"
+                },
+
+                // Explicit content type
+                {
+                    "Content-Type",
+                    to_string_mime(AresWasmWorker::MimeType::JSON)
+                }
+            });
+
+            request.headers.insert(baseHeaders.begin(), baseHeaders.end());
+        }
+
         template<ResponseChecker BodyType, RequestCheck Request>
         std::unique_ptr<HttpResponse<BodyType> > makeRequestCall(
             const std::string &apiAddress,
             const HttpMethod methodType,
             Request &request
         ) {
-            request.method = to_string_method(methodType);
-
             auto targetAddress = configureAddress(apiAddress);
+
+            request.method = to_string_method(methodType);
+            request.url = targetAddress;
+            appendDefaultHeaders(request);
 
             auto jsonData = request.toJson();
             auto requestPtr = alloc(static_cast<uint32_t>(jsonData.size() + 1));
