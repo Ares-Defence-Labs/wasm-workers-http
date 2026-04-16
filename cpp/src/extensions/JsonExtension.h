@@ -12,7 +12,7 @@ namespace AresWasmWorker {
         template<ResponseChecker BodyType>
         static BodyType getResponseFromJson(const std::string &responseJson) {
             if (responseJson.empty()) {
-                return BodyType{}; 
+                return BodyType{};
             }
             return nlohmann::json::parse(responseJson).get<BodyType>();
         }

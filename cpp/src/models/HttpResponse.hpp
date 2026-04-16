@@ -14,10 +14,11 @@ using json = nlohmann::json;
 template<typename Res>
 concept ResponseChecker = std::is_class_v<Res>;
 
-template<typename Res>
-concept RequestCheck =
-        std::is_class_v<Res> &&
-        std::derived_from<Res, AresWasmWorker::HttpRequest>;
+template<typename T>
+concept RequestCheck = requires(const T &value)
+{
+    { value.toJson() } -> std::convertible_to<std::string>;
+} && std::derived_from<T, AresWasmWorker::HttpRequest>;
 
 namespace AresWasmWorker {
     template<ResponseChecker BodyType>
