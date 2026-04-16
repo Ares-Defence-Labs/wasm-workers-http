@@ -36,7 +36,7 @@ namespace AresWasmWorker {
         std::unique_ptr<HttpResponse<BodyType> > makeRequestCall(
             const std::string &apiAddress,
             const HttpMethod methodType,
-            const Request &request
+            Request &request
         ) {
             request.method = to_string_method(methodType);
 
@@ -75,7 +75,7 @@ namespace AresWasmWorker {
         }
 
     public:
-        AresHttpClient *configureBaseAddress(std::string& _baseAddress) {
+        AresHttpClient *configureBaseAddress(std::string &_baseAddress) {
             baseAddress = std::make_unique<std::string>(_baseAddress);
             return this;
         }
@@ -106,12 +106,12 @@ namespace AresWasmWorker {
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
-         std::unique_ptr<HttpResponse<BodyType> > head(std::string apiAddress, RequestBody requestBody) {
+        std::unique_ptr<HttpResponse<BodyType> > head(std::string apiAddress, RequestBody requestBody) {
             return makeRequestCall<BodyType>(apiAddress, HttpMethod::HEAD, requestBody);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
-         std::unique_ptr<HttpResponse<BodyType> > options(std::string apiAddress, RequestBody requestBody) {
+        std::unique_ptr<HttpResponse<BodyType> > options(std::string apiAddress, RequestBody requestBody) {
             return makeRequestCall<BodyType>(apiAddress, HttpMethod::OPTIONS, requestBody);
         }
     };
