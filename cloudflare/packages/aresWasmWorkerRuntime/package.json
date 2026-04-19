@@ -1,6 +1,6 @@
 {
   "name": "@aresdefencelabs/wasm-http-runtime",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "description": "Runtime adapter that connects C++ WebAssembly workers to the Cloudflare Workers runtime via an ABI bridge.",
   "type": "module",
   "private": false,

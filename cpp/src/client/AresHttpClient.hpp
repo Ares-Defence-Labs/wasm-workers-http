@@ -11,27 +11,13 @@
 #include "../enums/Mimes.h"
 #include "../extensions/JsonExtension.h"
 #include "../helpers/ABIHelpers.h"
-#include "../helpers/LoggingHelper.h"
 #include "../models/HttpRequest.hpp"
 #include "nlohmann/json.hpp"
-
-#include <emscripten/emscripten.h>
 
 using json = nlohmann::json;
 
 namespace AresWasmWorker {
     class AresHttpClient {
-        std::unique_ptr<std::string> baseAddress;
-
-        [[nodiscard]] std::string configureAddress(std::string apiName) const {
-            const auto baseAddr = *baseAddress;
-            if (baseAddr.empty()) {
-                return apiName;
-            }
-
-            return std::format("{}/{}", baseAddr, apiName);
-        }
-
         template<RequestCheck Request>
         void appendDefaultHeaders(Request &request) const {
             auto baseHeaders = std::map<std::string, std::string>({
@@ -66,12 +52,10 @@ namespace AresWasmWorker {
 
         template<ResponseChecker BodyType, RequestCheck Request>
         std::unique_ptr<HttpResponse<BodyType> > makeRequestCall(
-            const std::string &apiAddress,
+            const std::string &targetAddress,
             const HttpMethod methodType,
             Request &request
         ) {
-            auto targetAddress = configureAddress(apiAddress);
-
             request.method = to_string_method(methodType);
             request.url = targetAddress;
             appendDefaultHeaders(request);
@@ -109,11 +93,6 @@ namespace AresWasmWorker {
         }
 
     public:
-        AresHttpClient *configureBaseAddress(std::string &_baseAddress) {
-            baseAddress = std::make_unique<std::string>(_baseAddress);
-            return this;
-        }
-
         template<ResponseChecker BodyType>
         std::unique_ptr<HttpResponse<BodyType> > get(const std::string apiAddress) {
             return makeRequestCall<BodyType>(apiAddress, HttpMethod::GET);
