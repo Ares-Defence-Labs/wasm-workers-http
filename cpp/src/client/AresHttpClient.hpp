@@ -137,9 +137,9 @@ namespace AresWasmWorker {
             return makeRequestCall<BodyType>(apiAddress, HttpMethod::POST, requestBody);
         }
 
-        template<ResponseChecker BodyType, RequestCheck RequestBody>
+        template<RequestCheck RequestBody>
         void postFireAndForget(std::string apiAddress, RequestBody requestBody) {
-            return makeRequestCallFireAndForget<BodyType>(apiAddress, HttpMethod::POST, requestBody);
+            makeRequestCallFireAndForget(apiAddress, HttpMethod::POST, requestBody);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
