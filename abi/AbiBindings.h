@@ -3,6 +3,7 @@
 
 extern "C" {
     uint32_t abi_http_fetch_blocking_async(uint32_t request_json_cstr_ptr);
+    void abi_http_fetch_non_blocking_async(uint32_t request_json_cstr_ptr);
 
     uint32_t abi_http_response_get_status(uint32_t response_id);
     uint32_t abi_http_response_get_body_len(uint32_t response_id);

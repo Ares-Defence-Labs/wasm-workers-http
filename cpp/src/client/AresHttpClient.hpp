@@ -92,6 +92,40 @@ namespace AresWasmWorker {
             );
         }
 
+        template<RequestCheck Request>
+        void makeRequestCallFireAndForget(
+            const std::string &targetAddress,
+            const HttpMethod methodType,
+            Request &request
+        ) {
+            request.method = to_string_method(methodType);
+            request.url = targetAddress;
+            appendDefaultHeaders(request);
+
+            auto jsonData = request.toJson();
+            auto requestSize = static_cast<uint32_t>(jsonData.size() + 1);
+
+            auto requestPtr = alloc(requestSize);
+            if (!requestPtr) {
+                throw std::runtime_error("alloc failed for request json");
+            }
+
+            std::memcpy(
+                reinterpret_cast<void *>(requestPtr),
+                jsonData.c_str(),
+                requestSize
+            );
+
+            try {
+                abi_http_fetch_non_blocking_async(requestPtr);
+            } catch (...) {
+                free_mem(requestPtr, requestSize);
+                throw;
+            }
+
+            free_mem(requestPtr, requestSize);
+        }
+
     public:
         template<ResponseChecker BodyType>
         std::unique_ptr<HttpResponse<BodyType> > get(const std::string apiAddress) {
@@ -101,6 +135,11 @@ namespace AresWasmWorker {
         template<ResponseChecker BodyType, RequestCheck RequestBody>
         std::unique_ptr<HttpResponse<BodyType> > post(std::string apiAddress, RequestBody requestBody) {
             return makeRequestCall<BodyType>(apiAddress, HttpMethod::POST, requestBody);
+        }
+
+        template<ResponseChecker BodyType, RequestCheck RequestBody>
+        void postFireAndForget(std::string apiAddress, RequestBody requestBody) {
+            return makeRequestCallFireAndForget<BodyType>(apiAddress, HttpMethod::POST, requestBody);
         }
 
         template<ResponseChecker BodyType, RequestCheck RequestBody>
