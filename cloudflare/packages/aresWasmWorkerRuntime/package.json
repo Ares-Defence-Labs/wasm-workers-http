@@ -1,6 +1,6 @@
 {
   "name": "@aresdefencelabs/wasm-http-runtime",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "description": "Runtime adapter that connects C++ WebAssembly workers to the Cloudflare Workers runtime via an ABI bridge.",
   "type": "module",
   "private": false,
@@ -32,7 +32,9 @@
   ],
 
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "dryrun": "npm pack --dry-run",
+    "deploy": "npm publish --access public"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
