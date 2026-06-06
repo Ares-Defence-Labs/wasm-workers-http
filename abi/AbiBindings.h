@@ -15,5 +15,6 @@ extern "C" {
     void abi_log(uint32_t message_cstr_ptr);
 
     uint32_t alloc(uint32_t size);
+    uint32_t get_value_from_key(uint32_t key);
     void free_mem(uint32_t ptr, uint32_t size);
 }
