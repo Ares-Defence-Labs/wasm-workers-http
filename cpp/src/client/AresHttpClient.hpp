@@ -118,6 +118,51 @@ void appendDefaultHeaders(
         }
 
     public:
+std::unique_ptr<HttpResponse<std::string>> getRaw(
+    const std::string& apiAddress,
+    const Headers& headers = {}
+) {
+    HttpRequest request;
+
+    request.method = to_string_method(HttpMethod::GET);
+    request.url = apiAddress;
+
+    appendDefaultHeaders(request, headers);
+
+    auto jsonData = request.toJson();
+
+    auto requestPtr = alloc(static_cast<uint32_t>(jsonData.size() + 1));
+
+    std::memcpy(
+        reinterpret_cast<void*>(requestPtr),
+        jsonData.c_str(),
+        jsonData.size() + 1
+    );
+
+    const auto responseId = abi_http_fetch_blocking_async(requestPtr);
+
+    free_mem(
+        requestPtr,
+        static_cast<uint32_t>(jsonData.size() + 1)
+    );
+
+    if (!responseId) {
+        throw std::runtime_error("abi_http_fetch_blocking failed");
+    }
+
+    ScopedHostResponse scoped(responseId);
+
+    auto rawResponse = AbiHttpHelpers::readResponse(scoped.id());
+
+    return std::make_unique<HttpResponse<std::string>>(
+        rawResponse.status,
+        std::make_shared<std::map<std::string, std::string>>(
+            std::move(rawResponse.headers)
+        ),
+        std::move(rawResponse.body)
+    );
+}
+
       template<ResponseChecker BodyType>
 std::unique_ptr<HttpResponse<BodyType>> get(
     const std::string &apiAddress,
