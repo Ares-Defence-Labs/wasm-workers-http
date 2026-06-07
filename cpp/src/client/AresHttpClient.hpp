@@ -20,7 +20,6 @@ using Headers = std::map<std::string, std::string>;
 namespace AresWasmWorker {
     class AresHttpClient {
         template<RequestCheck Request>
-        template<RequestCheck Request>
 void appendDefaultHeaders(
     Request &request,
     const Headers &headers = {}
