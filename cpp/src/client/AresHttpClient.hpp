@@ -15,50 +15,40 @@
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
+using Headers = std::map<std::string, std::string>;
 
 namespace AresWasmWorker {
     class AresHttpClient {
         template<RequestCheck Request>
-        void appendDefaultHeaders(Request &request) const {
-            auto baseHeaders = std::map<std::string, std::string>({
-                {
-                    to_string_header(HttpHeader::ACCEPT),
-                    to_string_mime(AresWasmWorker::MimeType::JSON)
-                },
+        template<RequestCheck Request>
+void appendDefaultHeaders(
+    Request &request,
+    const Headers &headers = {}
+) const {
+    Headers baseHeaders = {
+        { to_string_header(HttpHeader::ACCEPT), to_string_mime(MimeType::JSON) },
+        { "X-Content-Type-Options", "nosniff" },
+        { "X-Frame-Options", "DENY" },
+        { "Content-Security-Policy", "default-src 'none'" },
+        { "Content-Type", to_string_mime(MimeType::JSON) }
+    };
 
-                // Security headers
-                {
-                    "X-Content-Type-Options",
-                    "nosniff"
-                },
-                {
-                    "X-Frame-Options",
-                    "DENY"
-                },
-                {
-                    "Content-Security-Policy",
-                    "default-src 'none'"
-                },
+    request.headers.insert(baseHeaders.begin(), baseHeaders.end());
 
-                // Explicit content type
-                {
-                    "Content-Type",
-                    to_string_mime(AresWasmWorker::MimeType::JSON)
-                }
-            });
-
-            request.headers.insert(baseHeaders.begin(), baseHeaders.end());
-        }
+    // Caller headers override defaults
+    request.headers.insert_or_assign(headers.begin(), headers.end());
+}
 
         template<ResponseChecker BodyType, RequestCheck Request>
         std::unique_ptr<HttpResponse<BodyType> > makeRequestCall(
             const std::string &targetAddress,
             const HttpMethod methodType,
-            Request &request
+            Request &request,
+ 			const Headers &headers = {}
         ) {
             request.method = to_string_method(methodType);
             request.url = targetAddress;
-            appendDefaultHeaders(request);
+            appendDefaultHeaders(request, headers);
 
             auto jsonData = request.toJson();
             auto requestPtr = alloc(static_cast<uint32_t>(jsonData.size() + 1));
@@ -96,11 +86,12 @@ namespace AresWasmWorker {
         void makeRequestCallFireAndForget(
             const std::string &targetAddress,
             const HttpMethod methodType,
-            Request &request
+            Request &request,
+ 			const Headers &headers = {}
         ) {
             request.method = to_string_method(methodType);
             request.url = targetAddress;
-            appendDefaultHeaders(request);
+            appendDefaultHeaders(request, headers);
 
             auto jsonData = request.toJson();
             auto requestSize = static_cast<uint32_t>(jsonData.size() + 1);
@@ -127,44 +118,76 @@ namespace AresWasmWorker {
         }
 
     public:
-        template<ResponseChecker BodyType>
-        std::unique_ptr<HttpResponse<BodyType> > get(const std::string apiAddress) {
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::GET);
-        }
+      template<ResponseChecker BodyType>
+std::unique_ptr<HttpResponse<BodyType>> get(
+    const std::string &apiAddress,
+    const Headers &headers = {}
+) {
+    HttpRequest request;
+    return makeRequestCall<BodyType>(apiAddress, HttpMethod::GET, request, headers);
+}
 
-        template<ResponseChecker BodyType, RequestCheck RequestBody>
-        std::unique_ptr<HttpResponse<BodyType> > post(std::string apiAddress, RequestBody requestBody) {
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::POST, requestBody);
-        }
+template<ResponseChecker BodyType, RequestCheck RequestBody>
+std::unique_ptr<HttpResponse<BodyType>> post(
+    const std::string &apiAddress,
+    RequestBody requestBody,
+    const Headers &headers = {}
+) {
+    return makeRequestCall<BodyType>(apiAddress, HttpMethod::POST, requestBody, headers);
+}
 
-        template<RequestCheck RequestBody>
-        void postFireAndForget(std::string apiAddress, RequestBody requestBody) {
-            makeRequestCallFireAndForget(apiAddress, HttpMethod::POST, requestBody);
-        }
+template<RequestCheck RequestBody>
+void postFireAndForget(
+    const std::string &apiAddress,
+    RequestBody requestBody,
+    const Headers &headers = {}
+) {
+    makeRequestCallFireAndForget(apiAddress, HttpMethod::POST, requestBody, headers);
+}
 
-        template<ResponseChecker BodyType, RequestCheck RequestBody>
-        std::unique_ptr<HttpResponse<BodyType> > delete_(std::string apiAddress, RequestBody requestBody) {
-            return makeRequestCall<BodyType>(apiAddress, requestBody);
-        }
+template<ResponseChecker BodyType, RequestCheck RequestBody>
+std::unique_ptr<HttpResponse<BodyType>> delete_(
+    const std::string &apiAddress,
+    RequestBody requestBody,
+    const Headers &headers = {}
+) {
+    return makeRequestCall<BodyType>(apiAddress, HttpMethod::DELETE_, requestBody, headers);
+}
 
-        template<ResponseChecker BodyType, RequestCheck RequestBody>
-        std::unique_ptr<HttpResponse<BodyType> > patch(std::string apiAddress, RequestBody requestBody) {
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::PATCH, requestBody);
-        }
+template<ResponseChecker BodyType, RequestCheck RequestBody>
+std::unique_ptr<HttpResponse<BodyType>> patch(
+    const std::string &apiAddress,
+    RequestBody requestBody,
+    const Headers &headers = {}
+) {
+    return makeRequestCall<BodyType>(apiAddress, HttpMethod::PATCH, requestBody, headers);
+}
 
-        template<ResponseChecker BodyType, RequestCheck RequestBody>
-        std::unique_ptr<HttpResponse<BodyType> > put(std::string apiAddress, RequestBody requestBody) {
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::PUT, requestBody);
-        }
+template<ResponseChecker BodyType, RequestCheck RequestBody>
+std::unique_ptr<HttpResponse<BodyType>> put(
+    const std::string &apiAddress,
+    RequestBody requestBody,
+    const Headers &headers = {}
+) {
+    return makeRequestCall<BodyType>(apiAddress, HttpMethod::PUT, requestBody, headers);
+}
 
-        template<ResponseChecker BodyType, RequestCheck RequestBody>
-        std::unique_ptr<HttpResponse<BodyType> > head(std::string apiAddress, RequestBody requestBody) {
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::HEAD, requestBody);
-        }
+template<ResponseChecker BodyType, RequestCheck RequestBody>
+std::unique_ptr<HttpResponse<BodyType>> head(
+    const std::string &apiAddress,
+    RequestBody requestBody,
+    const Headers &headers = {}
+) {
+    return makeRequestCall<BodyType>(apiAddress, HttpMethod::HEAD, requestBody, headers);
+}
 
-        template<ResponseChecker BodyType, RequestCheck RequestBody>
-        std::unique_ptr<HttpResponse<BodyType> > options(std::string apiAddress, RequestBody requestBody) {
-            return makeRequestCall<BodyType>(apiAddress, HttpMethod::OPTIONS, requestBody);
-        }
+template<ResponseChecker BodyType, RequestCheck RequestBody>
+std::unique_ptr<HttpResponse<BodyType>> options(
+    const std::string &apiAddress,
+    RequestBody requestBody,
+    const Headers &headers = {}
+) {
+    return makeRequestCall<BodyType>(apiAddress, HttpMethod::OPTIONS, requestBody, headers);
+}
     };
 }

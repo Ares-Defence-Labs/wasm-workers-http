@@ -26,7 +26,10 @@
   "buildPresets": [
     {
       "name": "build-wasm-debug",
-      "configurePreset": "wasm-debug"
+      "configurePreset": "wasm-debug",
+      "targets": [
+        "ares_workers_http"
+      ]
     }
   ]
 }
