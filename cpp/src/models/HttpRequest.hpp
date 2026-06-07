@@ -16,5 +16,14 @@ namespace AresWasmWorker {
 
         HttpRequest() = default;
         virtual ~HttpRequest() = default;
+
+        [[nodiscard]]
+        virtual std::string toJson() const {
+            nlohmann::json json;
+            json["url"] = url;
+            json["method"] = method;
+            json["headers"] = headers;
+            return json.dump();
+        }
     };
 }

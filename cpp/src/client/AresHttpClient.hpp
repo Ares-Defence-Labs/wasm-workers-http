@@ -34,8 +34,9 @@ void appendDefaultHeaders(
 
     request.headers.insert(baseHeaders.begin(), baseHeaders.end());
 
-    // Caller headers override defaults
-    request.headers.insert_or_assign(headers.begin(), headers.end());
+     for (const auto& [key, value] : headers) {
+        request.headers.insert_or_assign(key, value);
+    }
 }
 
         template<ResponseChecker BodyType, RequestCheck Request>
