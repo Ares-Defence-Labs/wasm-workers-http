@@ -2,9 +2,26 @@
 
 #include <string>
 #include <map>
+#include <cstdint>
 #include "nlohmann/json.hpp"
 
 namespace AresWasmWorker {
+
+    enum class ServiceBusDispatchMode {
+        Local,
+        Remote
+    };
+
+    inline std::string toString(ServiceBusDispatchMode mode) {
+        switch (mode) {
+            case ServiceBusDispatchMode::Local:
+                return "local";
+            case ServiceBusDispatchMode::Remote:
+                return "remote";
+            default:
+                return "remote";
+        }
+    }
 
     struct ServiceBusTargetRequest {
         std::string url;
@@ -27,10 +44,11 @@ namespace AresWasmWorker {
 
     struct ServiceBusRequest {
         std::string idempotencyKey;
+        ServiceBusDispatchMode dispatchMode = ServiceBusDispatchMode::Remote;
         ServiceBusTargetRequest target;
 
         uint32_t maxImmediateAttempts = 3;
-        uint32_t retryAfterSeconds = 10800; // 3 hours
+        uint32_t retryAfterSeconds = 10800;
 
         ServiceBusRequest() = default;
         virtual ~ServiceBusRequest() = default;
@@ -42,6 +60,8 @@ namespace AresWasmWorker {
             if (!idempotencyKey.empty()) {
                 json["idempotencyKey"] = idempotencyKey;
             }
+
+            json["dispatchMode"] = toString(dispatchMode);
 
             json["target"] = {
                 {"url", target.url},
@@ -56,5 +76,4 @@ namespace AresWasmWorker {
             return json.dump();
         }
     };
-
 }
