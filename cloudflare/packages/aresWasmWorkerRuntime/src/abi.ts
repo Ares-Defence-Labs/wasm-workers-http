@@ -16,6 +16,85 @@ import {
     getMemoryOrThrow
 } from "./runtime";
 
+import type {
+    Queue,
+    MessageBatch,
+    KVNamespace,
+} from "@cloudflare/workers-types";
+
+export type Env = {
+    SERVICE_BUS_QUEUE: Queue<{ id: string }>;
+    SERVICE_BUS_JOBS: KVNamespace;
+};
+
+export default {
+    async queue(batch: MessageBatch<{ id: string }>, env: Env): Promise<void> {
+        for (const msg of batch.messages) {
+            const raw = await env.SERVICE_BUS_JOBS.get(msg.body.id);
+
+            if (!raw) {
+                msg.ack();
+                continue;
+            }
+
+            const record = JSON.parse(raw);
+            const job = record.job;
+            const attempts = (record.attempts ?? 0) + 1;
+            const now = new Date().toISOString();
+
+            try {
+                const response = await fetch(job.target.url, {
+                    method: job.target.method ?? "POST",
+                    headers: job.target.headers ?? {
+                        "content-type": "application/json",
+                    },
+                    body:
+                        typeof job.target.body === "string"
+                            ? job.target.body
+                            : JSON.stringify(job.target.body ?? {}),
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.text().catch(() => "");
+                    throw new Error(`HTTP ${response.status}: ${errorBody}`);
+                }
+
+                await env.SERVICE_BUS_JOBS.put(
+                    msg.body.id,
+                    JSON.stringify({
+                        ...record,
+                        status: "completed",
+                        attempts,
+                        lastHttpStatus: response.status,
+                        lastAttemptAt: now,
+                        updatedAt: now,
+                        completedAt: now,
+                        lastError: null,
+                    })
+                );
+
+                msg.ack();
+            } catch (error) {
+                await env.SERVICE_BUS_JOBS.put(
+                    msg.body.id,
+                    JSON.stringify({
+                        ...record,
+                        status: "failed",
+                        attempts,
+                        lastError: error instanceof Error ? error.message : String(error),
+                        lastAttemptAt: now,
+                        updatedAt: now,
+                    })
+                );
+
+                msg.retry({
+                    delaySeconds: attempts <= 3 ? 10 : 10800, // 3 hours after first 3 tries
+                });
+            }
+        }
+    },
+};
+
 function getInstanceOrThrow<Env>(state: RuntimeState<Env>) {
     if (!state.instance) {
         throw new Error("Wasm instance has not been initialised yet.");
@@ -154,6 +233,37 @@ export function createAresAbiImports<Env>(state: RuntimeState<Env>) {
                 const alloc = getAllocOrThrow(instance);
 
                 return writeCString(memory, alloc, userAgent);
+            },
+
+            abi_service_bus_enqueue_json(payloadJsonCstrPtr: number): number {
+                const instance = getInstanceOrThrow(state);
+                const memory = getMemoryOrThrow(instance);
+                const ctx = getRequestContextOrThrow(state);
+
+                const payloadJson = readCString(memory, payloadJsonCstrPtr);
+                const job = JSON.parse(payloadJson);
+
+                const id = job.idempotencyKey ?? crypto.randomUUID();
+
+                ctx.ctx.waitUntil((async () => {
+                    // Permanent-ish storage layer
+                    await (ctx.env as any).SERVICE_BUS_JOBS.put(
+                        id,
+                        JSON.stringify({
+                            id,
+                            status: "pending",
+                            attempts: 0,
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString(),
+                            job
+                        })
+                    );
+
+                    // Queue only the ID
+                    await (ctx.env as any).SERVICE_BUS_QUEUE.send({ id });
+                })());
+
+                return 1;
             },
 
             abi_http_fetch_blocking_async(requestJsonCstrPtr: number): number {

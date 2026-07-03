@@ -21,6 +21,8 @@ add_library(wasm_workers_http INTERFACE
         src/enums/ResponseCode.hpp
 
         src/extensions/JsonExtension.h
+        src/models/ServiceBusRequest.h
+        src/helpers/ServiceBusHelper.h
 )
 
 add_library(ares::wasm-workers-http ALIAS wasm_workers_http)

@@ -17,4 +17,8 @@ extern "C" {
     uint32_t alloc(uint32_t size);
     uint32_t get_value_from_key(uint32_t key);
     void free_mem(uint32_t ptr, uint32_t size);
+
+    // Enqueue JSON payload to durable service bus.
+    // Returns 1 = accepted, 0 = failed.
+    uint32_t abi_service_bus_enqueue_json(uint32_t payload_json_cstr_ptr);
 }
