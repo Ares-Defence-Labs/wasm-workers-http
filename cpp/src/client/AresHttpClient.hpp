@@ -11,6 +11,7 @@
 #include "../enums/Mimes.h"
 #include "../extensions/JsonExtension.h"
 #include "../helpers/ABIHelpers.h"
+#include "../helpers/LoggingHelper.h"
 #include "../models/HttpRequest.hpp"
 #include "nlohmann/json.hpp"
 
