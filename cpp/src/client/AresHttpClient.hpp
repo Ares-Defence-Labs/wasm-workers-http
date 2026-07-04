@@ -71,6 +71,13 @@ void appendDefaultHeaders(
 
             ScopedHostResponse scoped(responseId);
             auto rawResponse = AbiHttpHelpers::readResponse(scoped.id());
+AresWasmWorker::abiLog(std::format(
+    "HTTP status = {}",
+    rawResponse.status));
+
+AresWasmWorker::abiLog(std::format(
+    "HTTP body = {}",
+    rawResponse.body));
 
             BodyType responseObj =
                     JsonExtensions::getResponseFromJson<BodyType>(rawResponse.body);
@@ -153,6 +160,14 @@ std::unique_ptr<HttpResponse<std::string>> getRaw(
     ScopedHostResponse scoped(responseId);
 
     auto rawResponse = AbiHttpHelpers::readResponse(scoped.id());
+
+AresWasmWorker::abiLog(std::format(
+    "HTTP status = {}",
+    rawResponse.status));
+
+AresWasmWorker::abiLog(std::format(
+    "HTTP body = {}",
+    rawResponse.body));
 
     return std::make_unique<HttpResponse<std::string>>(
         rawResponse.status,
